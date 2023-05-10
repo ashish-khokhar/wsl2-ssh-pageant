@@ -29,6 +29,30 @@ For example, on Ubuntu you can install these by running: `sudo apt install socat
 #### Bash/Zsh
 
 *SSH:*
+My Version (More verbose):
+```bash
+export COMPOSER_ALLOW_SUPERUSER=1
+export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
+
+if [ -z "${DOCKER_ENV}" ]; then
+  if ! ss -a | grep -q "$SSH_AUTH_SOCK"; then
+    echo Cleanup
+    rm -f "$SSH_AUTH_SOCK"
+    wsl2_ssh_pageant_bin="$HOME/.ssh/wsl2-ssh-pageant.exe"
+    if test -x "$wsl2_ssh_pageant_bin"; then
+      echo Starting agent
+      (setsid nohup socat UNIX-LISTEN:"$SSH_AUTH_SOCK,fork" EXEC:"$wsl2_ssh_pageant_bin" >/dev/null 2>&1 &)
+    else
+      echo >&2 "WARNING: $wsl2_ssh_pageant_bin is not executable."
+    fi
+    unset wsl2_ssh_pageant_bin
+  fi
+
+  echo SSH Agent loaded
+fi
+```
+
+Original Version:
 ```bash
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 if ! ss -a | grep -q "$SSH_AUTH_SOCK"; then
